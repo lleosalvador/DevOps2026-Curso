@@ -101,3 +101,8 @@ async def apagar_tarefa(id_tarefa: int):
 async def index():
     """ Rota raíz. """
     return {"mensagem": "Olá, mundo!"}
+
+@APP.get("/autor")
+async def autor():
+    """ Rota para retornar o nome do autor da API. """
+    return {"mensagem": "Leonardo Salvador"}
