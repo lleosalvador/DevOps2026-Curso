@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+""" Aplicação para o módulo de extensão DevOps """
+
 from datetime import datetime
+from fastapi import FastAPI
 import requests
+from requests.exceptions import ConnectionError as RequestConnectionError
 
 APP = FastAPI()
 TAREFAS = []
@@ -16,6 +19,8 @@ TAREFAS = []
 """
 
 def criar_tarefa(titulo, descricao):
+    """ Função para criar uma tarefa e retorna um dicionário. """
+
     return {
         "id": len(TAREFAS),
         "titulo": titulo,
@@ -26,6 +31,7 @@ def criar_tarefa(titulo, descricao):
 
 @APP.get("/tarefas")
 async def tarefas():
+    """ Rota para listar as tarefas. """
     lista_somente_id_titulo = []
 
     for tarefa in TAREFAS:
@@ -38,56 +44,60 @@ async def tarefas():
 
 @APP.post("/tarefas", status_code=201)
 async def post_tarefa(titulo: str, descricao: str):
-    global TAREFAS
-
+    """ Rota para criar uma tarefa. """
     tarefa_nova = criar_tarefa(titulo, descricao)
 
     TAREFAS.append(tarefa_nova)
 
     return {"mensagem": "OK"}
 
-@APP.get("/tarefas/{id}")
-async def tarefa_especifica(id: int):
+@APP.get("/tarefas/{id_tarefa}")
+async def tarefa_especifica(id_tarefa: int):
+    """ Rota para visualizar uma tarefa específica """
 
     for tarefa in TAREFAS:
-        if id == int(tarefa["id"]):
+        if id_tarefa == int(tarefa["id"]):
             return tarefa
 
     return {"mensagem": "Tarefa não existe"}
 
-@APP.put("/tarefas/{id}")
-async def concluir_tarefa(id: int):
+@APP.put("/tarefas/{id_tarefa}")
+async def concluir_tarefa(id_tarefa: int):
+    """ Rota para concluir uma tarefa. """
+
     for tarefa in TAREFAS:
-        if id == int(tarefa['id']) and tarefa['concluida'] == False:
+        if id_tarefa == int(tarefa['id']) and tarefa['concluida'] is False:
             tarefa['concluida'] = True
             tarefa['concluida_em'] = datetime.now().isoformat(timespec='seconds')
             titulo = tarefa['titulo']
 
             try:
-                resp = requests.post(
+                _ = requests.post(
                     f"http://localhost:8000/notificar?id={id}&titulo={titulo}",
                     timeout=1
-                    )
-                print(resp)
-            except Exception as e:
+                )
+            except RequestConnectionError as e:
                 print(e)
+
             return {"mensagem": "Tarefa atualizada"}
+
     return {"mensagem": "Tarefa não existe"}
 
-@APP.delete("/tarefas/{id}")
-async def apagar_tarefa(id: int):
-
-    global TAREFAS
+@APP.delete("/tarefas/{id_tarefa}")
+async def apagar_tarefa(id_tarefa: int):
+    """ Rota para apagar tarefa. """
 
     indice = 0
     for tarefa in TAREFAS:
-        if id == int(tarefa['id']):
+        if id_tarefa == int(tarefa['id']):
             TAREFAS.pop(indice)
             return {"mensagem": "Tarefa apagada"}
 
         indice += 1
+
     return {"mensagem": "Tarefa não existe"}
 
 @APP.get("/")
 async def index():
+    """ Rota raíz. """
     return {"mensagem": "Olá, mundo!"}

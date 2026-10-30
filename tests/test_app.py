@@ -15,6 +15,8 @@ def test_index():
 def test_tarefas_get():
     resposta = CLIENT.get("/tarefas")
     assert resposta.status_code == 200
+
+    # Testando se a rota retorna uma lista vazia
     assert resposta.json() == []
 
 # 2. Implementar um teste unitário para a rota /tarefas (POST)
@@ -22,6 +24,7 @@ def test_tarefas_post():
     global DATA
     resposta = CLIENT.post("/tarefas?titulo=teste&descricao=teste")
     DATA = datetime.now().isoformat(timespec="seconds")
+
     assert resposta.status_code == 201
     assert resposta.json() == {"mensagem": "OK"}
 
